@@ -2,7 +2,9 @@
 
 Miko is a high-performance, ultra-minimalist manga reader built with **Kotlin** and **Jetpack Compose**. It follows the **Material 3 Expressive** design guidelines to provide a fluid, modern, and highly customizable reading experience.
 
-![Miko Icon](miko_icon_no_mouth.svg)
+<p align="center">
+  <img width="300" height="300" alt="miko_icon_no_mouth" src="https://github.com/user-attachments/assets/e7c9444f-ad5e-4d00-a0da-8f4139bab48d" />
+</p>
 
 ## ✨ Features
 
@@ -16,7 +18,13 @@ Miko is a high-performance, ultra-minimalist manga reader built with **Kotlin** 
 - **📖 Flexible Reader**: Supports both **Vertical (Webtoon)** and **Paged** reading modes with a progress indicator.
 - **💾 History & Library**: Automatically tracks your reading progress and lets you save your favorites locally using Room.
 - **💖 Support Developer**: Optional opt-in ads and direct UPI support to help keep the project alive.
+## Screenshots
+## 📸 Screenshots
 
+| | | |
+|:---:|:---:|:---:|
+| <img width="250" src="https://github.com/user-attachments/assets/c284bc12-6895-497f-b06d-f2ee88d93139" /> | <img width="250" src="https://github.com/user-attachments/assets/fa602966-9fbd-4441-9387-484d1838195f" /> | <img width="250" src="https://github.com/user-attachments/assets/b21eee81-2012-4a28-9788-f19b5e6add12" /> |
+| <img width="250" src="https://github.com/user-attachments/assets/c463b0f9-17f3-449f-9754-9bcbf4107906" /> | <img width="250" src="https://github.com/user-attachments/assets/f5a27235-46cb-4524-a293-9d34df4a11c0" /> | <img width="250" src="https://github.com/user-attachments/assets/1ae623f0-5746-447d-943b-6aca4f4c8ecb" /> |
 ## 🛠️ Tech Stack
 
 - **UI**: Jetpack Compose (Material 3)
