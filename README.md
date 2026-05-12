@@ -65,4 +65,12 @@ Miko is designed for "no-IDE" development and can be compiled entirely from the 
 - **License**: MIT / Apache 2.0
 
 ---
-*Built with precision and passion.*
+## Star History
+
+<a href="https://www.star-history.com/?repos=Hotaro26%2Fmiko.git&type=date&legend=top-left">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=Hotaro26/miko.git&type=date&theme=dark&legend=top-left" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=Hotaro26/miko.git&type=date&legend=top-left" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=Hotaro26/miko.git&type=date&legend=top-left" />
+ </picture>
+</a>
