@@ -11,12 +11,13 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.miko.reader.ui.theme.AppTheme
@@ -29,10 +30,120 @@ fun AboutScreen(
     themeMode: Int,
     onThemeModeChange: (Int) -> Unit,
     selectedTheme: AppTheme,
-    onThemeChange: (AppTheme) -> Unit
+    onThemeChange: (AppTheme) -> Unit,
+    carouselCardSize: Int,
+    onCarouselCardSizeChange: (Int) -> Unit,
+    hapticsEnabled: Boolean,
+    onHapticsEnabledChange: (Boolean) -> Unit
 ) {
     val context = LocalContext.current
     val scrollState = rememberScrollState()
+    var showSupportDialog by remember { mutableStateOf(false) }
+    var pleadingStage by remember { mutableIntStateOf(0) }
+    val myUpiId = "sakibreza035@okaxis"
+
+    if (showSupportDialog) {
+        AlertDialog(
+            onDismissRequest = { showSupportDialog = false },
+            confirmButton = {
+                TextButton(onClick = { showSupportDialog = false }) {
+                    Text("Got it")
+                }
+            },
+            icon = { Icon(Icons.Default.Favorite, null, tint = MaterialTheme.colorScheme.primary) },
+            title = { Text("Support hotaro", textAlign = TextAlign.Center) },
+            text = {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        "Thank you for considering support! It means a lot to me. If your UPI app didn't open automatically, you can use this ID:",
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Spacer(Modifier.height(16.dp))
+                    Surface(
+                        color = MaterialTheme.colorScheme.secondaryContainer,
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text(
+                            text = myUpiId,
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
+                    }
+                    Spacer(Modifier.height(16.dp))
+                    Text(
+                        "Every bit of support helps keep Miko growing and stays crisp. ❤️",
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            },
+            shape = RoundedCornerShape(28.dp)
+        )
+    }
+
+    if (pleadingStage == 1) {
+        AlertDialog(
+            onDismissRequest = { pleadingStage = 0 },
+            confirmButton = {
+                TextButton(onClick = { pleadingStage = 2 }) {
+                    Text("Yes, turn off")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { pleadingStage = 0 }) {
+                    Text("No, keep them")
+                }
+            },
+            title = { Text("Are you sure? 🥺") },
+            text = { Text("Showing ads helps keep Miko alive and completely free! Do you really want to turn them off?") },
+            shape = RoundedCornerShape(28.dp)
+        )
+    }
+
+    if (pleadingStage == 2) {
+        AlertDialog(
+            onDismissRequest = { pleadingStage = 0 },
+            confirmButton = {
+                TextButton(onClick = { pleadingStage = 3 }) {
+                    Text("Turn off anyway")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { pleadingStage = 0 }) {
+                    Text("Reconsider & Keep")
+                }
+            },
+            title = { Text("Pretty please? 😭") },
+            text = { Text("It only shows occasional ads and supports developer hotaro's work. Would you reconsider keeping it enabled?") },
+            shape = RoundedCornerShape(28.dp)
+        )
+    }
+
+    if (pleadingStage == 3) {
+        AlertDialog(
+            onDismissRequest = { pleadingStage = 0 },
+            confirmButton = {
+                TextButton(onClick = { 
+                    pleadingStage = 0
+                    onOptInAdsChange(false) 
+                }) {
+                    Text("Disable Ads")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { pleadingStage = 0 }) {
+                    Text("Keep Ads Enabled")
+                }
+            },
+            title = { Text("Last try... 💖") },
+            text = { Text("Okay, if you really must, you can turn them off. But we'd love it if you keep supporting us. Disable ads?") },
+            shape = RoundedCornerShape(28.dp)
+        )
+    }
 
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
         Column(
@@ -95,7 +206,13 @@ fun AboutScreen(
                             }
                             Switch(
                                 checked = optInAds,
-                                onCheckedChange = onOptInAdsChange
+                                onCheckedChange = { checked ->
+                                    if (!checked) {
+                                        pleadingStage = 1
+                                    } else {
+                                        onOptInAdsChange(true)
+                                    }
+                                }
                             )
                         }
                     }
@@ -105,26 +222,22 @@ fun AboutScreen(
                     // UPI Support Button
                     Button(
                         onClick = {
-                            val upiId = "sakibreza035@okaxis"
                             val payeeName = "Hotaro"
                             val transactionNote = "Support Miko Development"
-                            val amount = "0"
                             
                             val uri = Uri.parse("upi://pay").buildUpon()
-                                .appendQueryParameter("pa", upiId)
+                                .appendQueryParameter("pa", myUpiId)
                                 .appendQueryParameter("pn", payeeName)
                                 .appendQueryParameter("tn", transactionNote)
-                                .appendQueryParameter("am", amount)
+                                .appendQueryParameter("am", "0")
                                 .appendQueryParameter("cu", "INR")
                                 .build()
                             
                             val upiIntent = Intent(Intent.ACTION_VIEW, uri)
-                            val chooser = Intent.createChooser(upiIntent, "Pay with...")
-                            
-                            if (upiIntent.resolveActivity(context.packageManager) != null) {
-                                context.startActivity(chooser)
-                            } else {
-                                Toast.makeText(context, "No UPI app found", Toast.LENGTH_SHORT).show()
+                            try {
+                                context.startActivity(upiIntent)
+                            } catch (e: Exception) {
+                                showSupportDialog = true
                             }
                         },
                         modifier = Modifier.fillMaxWidth(),
@@ -137,6 +250,26 @@ fun AboutScreen(
                         Icon(Icons.Default.Payments, null)
                         Spacer(Modifier.width(8.dp))
                         Text("Support via UPI")
+                    }
+                    
+                    Spacer(Modifier.height(8.dp))
+                    
+                    // Star GitHub Project Button
+                    Button(
+                        onClick = {
+                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/Hotaro26/miko"))
+                            context.startActivity(intent)
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.secondary,
+                            contentColor = MaterialTheme.colorScheme.onSecondary
+                        )
+                    ) {
+                        Icon(Icons.Default.Star, null)
+                        Spacer(Modifier.width(8.dp))
+                        Text("Star Miko on GitHub")
                     }
                 }
             }
@@ -190,6 +323,60 @@ fun AboutScreen(
                             )
                         }
                     }
+
+                    Spacer(Modifier.height(24.dp))
+                    Text("Manga Carousel Card Size", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
+                    Spacer(Modifier.height(8.dp))
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Slider(
+                            value = carouselCardSize.toFloat(),
+                            onValueChange = { onCarouselCardSizeChange(it.toInt()) },
+                            valueRange = 100f..220f,
+                            steps = 5, // 100, 120, 140, 160, 180, 200, 220
+                            modifier = Modifier.weight(1f),
+                            colors = SliderDefaults.colors(
+                                thumbColor = MaterialTheme.colorScheme.primary,
+                                activeTrackColor = MaterialTheme.colorScheme.primary,
+                                inactiveTrackColor = MaterialTheme.colorScheme.surfaceVariant,
+                                activeTickColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.5f),
+                                inactiveTickColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                            )
+                        )
+                        Text(
+                            text = "${carouselCardSize}dp",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.width(54.dp)
+                        )
+                    }
+
+                    Spacer(Modifier.height(24.dp))
+                    Text("Haptic Feedback", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
+                    Spacer(Modifier.height(12.dp))
+                    Surface(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(20.dp),
+                        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text("Vibration on tap", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
+                                Text("Vibrate when tapping tabs, buttons, or opening manga", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                            Switch(
+                                checked = hapticsEnabled,
+                                onCheckedChange = onHapticsEnabledChange
+                            )
+                        }
+                    }
                 }
             }
 
@@ -222,6 +409,10 @@ fun AboutScreen(
                         AboutChip("Discord") {
                             Toast.makeText(context, "Discord: oi.hotaro", Toast.LENGTH_LONG).show()
                         }
+                        AboutChip("Pinterest") {
+                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://pinterest.com/hotaro344"))
+                            context.startActivity(intent)
+                        }
                     }
                 }
             }
@@ -245,7 +436,7 @@ fun AboutScreen(
             Spacer(Modifier.height(32.dp))
             
             Text(
-                "Version 1.2.0",
+                "Version 1.2.1",
                 modifier = Modifier.align(Alignment.CenterHorizontally),
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)

@@ -1,52 +1,72 @@
 package com.miko.reader.model
 
+import com.google.gson.annotations.SerializedName
+
 data class MangaResponse(
-    val data: List<MangaData>
+    @SerializedName("data") val data: List<MangaData>
 )
 
 data class MangaData(
-    val id: String,
-    val attributes: MangaAttributes,
-    val relationships: List<Relationship>
-)
+    @SerializedName("id") val id: String,
+    @SerializedName("attributes") val attributes: MangaAttributes,
+    @SerializedName("relationships") val relationships: List<Relationship>
+) {
+    fun getCoverUrl(size: String = "256"): String? {
+        val fileName = relationships.find { it.type == "cover_art" }?.attributes?.fileName
+        return if (!fileName.isNullOrEmpty()) {
+            "https://uploads.mangadex.org/covers/$id/$fileName.$size.jpg"
+        } else null
+    }
+
+    fun getDescription(): String {
+        return when (val desc = attributes.description) {
+            is Map<*, *> -> desc["en"]?.toString() ?: desc.values.firstOrNull()?.toString() ?: ""
+            else -> ""
+        }
+    }
+
+    fun getTitle(): String {
+        return attributes.title["en"] ?: attributes.title.values.firstOrNull() ?: "Unknown"
+    }
+}
 
 data class MangaAttributes(
-    val title: Map<String, String>,
-    val description: Map<String, String>,
-    val lastChapter: String?
+    @SerializedName("title") val title: Map<String, String>,
+    @SerializedName("description") val description: Any?, // Can be Map or empty Array []
+    @SerializedName("lastChapter") val lastChapter: String?
 )
 
 data class Relationship(
-    val id: String,
-    val type: String,
-    val attributes: CoverAttributes? = null
+    @SerializedName("id") val id: String,
+    @SerializedName("type") val type: String,
+    @SerializedName("attributes") val attributes: RelationshipAttributes? = null
 )
 
-data class CoverAttributes(
-    val fileName: String
+data class RelationshipAttributes(
+    @SerializedName("fileName") val fileName: String? = null
 )
 
 data class ChapterListResponse(
-    val data: List<ChapterData>
+    @SerializedName("data") val data: List<ChapterData>
 )
 
 data class ChapterData(
-    val id: String,
-    val attributes: ChapterAttributes
+    @SerializedName("id") val id: String,
+    @SerializedName("attributes") val attributes: ChapterAttributes
 )
 
 data class ChapterAttributes(
-    val chapter: String?,
-    val title: String?,
-    val externalUrl: String?
+    @SerializedName("chapter") val chapter: String?,
+    @SerializedName("title") val title: String?,
+    @SerializedName("externalUrl") val externalUrl: String?
 )
 
 data class AtHomeResponse(
-    val baseUrl: String,
-    val chapter: AtHomeChapter
+    @SerializedName("baseUrl") val baseUrl: String,
+    @SerializedName("chapter") val chapter: AtHomeChapter
 )
 
 data class AtHomeChapter(
-    val hash: String,
-    val data: List<String>
+    @SerializedName("hash") val hash: String,
+    @SerializedName("data") val data: List<String>
 )

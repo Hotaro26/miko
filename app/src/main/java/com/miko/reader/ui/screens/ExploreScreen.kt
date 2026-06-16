@@ -34,11 +34,18 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.miko.reader.api.MangaDexApi
 import com.miko.reader.model.MangaData
+import com.miko.reader.ui.components.MikoLoadingScreen
+import com.miko.reader.ui.theme.pressToRaiseClickable
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ExploreScreen(api: MangaDexApi, onMangaClick: (MangaData) -> Unit) {
+fun ExploreScreen(
+    api: MangaDexApi, 
+    carouselCardSize: Int,
+    onLibraryClick: () -> Unit, 
+    onMangaClick: (MangaData) -> Unit
+) {
     var searchQuery by remember { mutableStateOf("") }
     var searchMangaList by remember { mutableStateOf(emptyList<MangaData>()) }
     var suggestedMangaList by remember { mutableStateOf(emptyList<MangaData>()) }
@@ -48,7 +55,12 @@ fun ExploreScreen(api: MangaDexApi, onMangaClick: (MangaData) -> Unit) {
 
     LaunchedEffect(Unit) {
         try {
-            val res = api.getMangaList(limit = 15)
+            val res = api.getMangaList(
+                limit = 30,
+                offset = 0,
+                includes = listOf("cover_art"),
+                contentRating = listOf("safe", "suggestive")
+            )
             suggestedMangaList = res.data
         } catch (e: Exception) {
             e.printStackTrace()
@@ -76,7 +88,11 @@ fun ExploreScreen(api: MangaDexApi, onMangaClick: (MangaData) -> Unit) {
                     isLoadingSearch = true
                     scope.launch {
                         try {
-                            val res = api.searchManga(it)
+                            val res = api.searchManga(
+                                title = it,
+                                includes = listOf("cover_art"),
+                                limit = 20
+                            )
                             searchMangaList = res.data
                         } catch (e: Exception) { e.printStackTrace() }
                         finally { isLoadingSearch = false }
@@ -106,7 +122,7 @@ fun ExploreScreen(api: MangaDexApi, onMangaClick: (MangaData) -> Unit) {
                 ) {
                     scope.launch {
                         try {
-                            val res = api.getRandomManga()
+                            val res = api.getRandomManga(includes = listOf("cover_art"))
                             onMangaClick(res.data)
                         } catch (e: Exception) { e.printStackTrace() }
                     }
@@ -116,7 +132,7 @@ fun ExploreScreen(api: MangaDexApi, onMangaClick: (MangaData) -> Unit) {
                     label = "Library", 
                     modifier = Modifier.weight(1f)
                 ) {
-                    // Library shortcut logic can be added here
+                    onLibraryClick()
                 }
             }
 
@@ -128,13 +144,13 @@ fun ExploreScreen(api: MangaDexApi, onMangaClick: (MangaData) -> Unit) {
             )
 
             if (isLoadingSuggestions) {
-                Box(Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(strokeCap = androidx.compose.ui.graphics.StrokeCap.Round)
+                Box(Modifier.fillMaxWidth().height(400.dp)) {
+                    MikoLoadingScreen("Finding Suggestions...")
                 }
             } else {
                 LazyVerticalGrid(
-                    columns = GridCells.Adaptive(minSize = 120.dp),
-                    contentPadding = PaddingValues(16.dp),
+                    columns = GridCells.Adaptive(minSize = carouselCardSize.dp),
+                    contentPadding = PaddingValues(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 96.dp),
                     verticalArrangement = Arrangement.spacedBy(20.dp),
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
                     modifier = Modifier.fillMaxSize()
@@ -146,13 +162,11 @@ fun ExploreScreen(api: MangaDexApi, onMangaClick: (MangaData) -> Unit) {
             }
         } else {
             if (isLoadingSearch) {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(strokeCap = androidx.compose.ui.graphics.StrokeCap.Round)
-                }
+                MikoLoadingScreen("Searching MangaDex...")
             } else {
                 LazyVerticalGrid(
-                    columns = GridCells.Adaptive(minSize = 120.dp),
-                    contentPadding = PaddingValues(16.dp),
+                    columns = GridCells.Adaptive(minSize = carouselCardSize.dp),
+                    contentPadding = PaddingValues(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 96.dp),
                     verticalArrangement = Arrangement.spacedBy(20.dp),
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
                     modifier = Modifier.fillMaxSize()
@@ -172,7 +186,7 @@ fun SearchBar(query: String, onQueryChange: (String) -> Unit, onClear: () -> Uni
             .fillMaxWidth()
             .padding(16.dp)
             .height(64.dp),
-        shape = RoundedCornerShape(24.dp),
+        shape = CircleShape,
         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
     ) {
         Row(
@@ -257,20 +271,13 @@ fun ShortcutButton(
 
 @Composable
 fun ExploreMangaCard(manga: MangaData, onClick: (MangaData) -> Unit) {
-    val title = manga.attributes.title["en"] ?: manga.attributes.title.values.firstOrNull() ?: "Unknown"
-    val coverRel = manga.relationships.find { it.type == "cover_art" }
-    val coverFileName = coverRel?.attributes?.fileName
-    val coverUrl = if (!coverFileName.isNullOrEmpty()) {
-        "https://uploads.mangadex.org/covers/${manga.id}/$coverFileName.256.jpg"
-    } else null
-
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick(manga) }
+            .pressToRaiseClickable { onClick(manga) }
     ) {
         AsyncImage(
-            model = coverUrl,
+            model = manga.getCoverUrl(),
             contentDescription = null,
             modifier = Modifier
                 .fillMaxWidth()
@@ -280,7 +287,7 @@ fun ExploreMangaCard(manga: MangaData, onClick: (MangaData) -> Unit) {
         )
         Spacer(Modifier.height(8.dp))
         Text(
-            text = title,
+            text = manga.getTitle(),
             style = MaterialTheme.typography.labelLarge,
             fontWeight = FontWeight.Bold,
             maxLines = 2,

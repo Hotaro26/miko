@@ -10,6 +10,7 @@ data class HistoryEntry(
     val coverUrl: String?,
     val lastChapterId: String?,
     val lastChapterNum: String?,
+    val lastPage: Int = 0,
     val timestamp: Long = System.currentTimeMillis()
 )
 
@@ -17,6 +18,9 @@ data class HistoryEntry(
 interface HistoryDao {
     @Query("SELECT * FROM history ORDER BY timestamp DESC")
     fun getAllHistory(): Flow<List<HistoryEntry>>
+
+    @Query("SELECT * FROM history WHERE id = :id")
+    suspend fun getHistoryById(id: String): HistoryEntry?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(entry: HistoryEntry)
@@ -47,7 +51,7 @@ interface FavouriteDao {
     suspend fun delete(manga: FavouriteManga)
 }
 
-@Database(entities = [HistoryEntry::class, FavouriteManga::class], version = 2, exportSchema = false)
+@Database(entities = [HistoryEntry::class, FavouriteManga::class], version = 3, exportSchema = false)
 abstract class MikoDatabase : RoomDatabase() {
     abstract fun historyDao(): HistoryDao
     abstract fun favouriteDao(): FavouriteDao

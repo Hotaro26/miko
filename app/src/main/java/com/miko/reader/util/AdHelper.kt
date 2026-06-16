@@ -11,8 +11,12 @@ import com.google.android.gms.ads.FullScreenContentCallback
 object AdHelper {
     private var interstitialAd: InterstitialAd? = null
 
-    // Production Interstitial Ad ID
-    private const val AD_UNIT_ID = "ca-app-pub-7829266345537215/8522483307"
+    // Automatically swap between test and production ad units depending on build configuration
+    private val AD_UNIT_ID = if (com.miko.reader.BuildConfig.DEBUG) {
+        "ca-app-pub-3940256099942544/1033173712" // Google Test Interstitial ID
+    } else {
+        "ca-app-pub-7829266345537215/8522483307" // Production ID
+    }
 
     fun loadInterstitialAd(context: Context) {
         val adRequest = AdRequest.Builder().build()

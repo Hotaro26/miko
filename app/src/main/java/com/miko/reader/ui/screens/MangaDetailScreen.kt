@@ -7,12 +7,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -28,22 +26,27 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.miko.reader.api.AniListApi
 import com.miko.reader.api.MangaDexApi
 import com.miko.reader.model.*
+import com.miko.reader.ui.components.MikoLoadingScreen
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MangaDetailScreen(
     api: MangaDexApi, 
+    aniListApi: AniListApi,
     mangaId: String, 
     db: MikoDatabase,
     onBack: () -> Unit, 
-    onChapterClick: (MangaData, ChapterData) -> Unit
+    onChapterClick: (MangaData, ChapterData, Int?, String?) -> Unit
 ) {
     var manga by remember { mutableStateOf<MangaData?>(null) }
+    var aniListMedia by remember { mutableStateOf<AniListMedia?>(null) }
     var chapters by remember { mutableStateOf(emptyList<ChapterData>()) }
     var isLoading by remember { mutableStateOf(true) }
+    var historyEntry by remember { mutableStateOf<HistoryEntry?>(null) }
     
     val isFav by db.favouriteDao().isFavourite(mangaId).collectAsState(initial = false)
     val context = LocalContext.current
@@ -52,9 +55,26 @@ fun MangaDetailScreen(
 
     LaunchedEffect(mangaId) {
         try {
-            val mangaRes = api.getManga(mangaId)
+            historyEntry = db.historyDao().getHistoryById(mangaId)
+            val mangaRes = api.getManga(mangaId, includes = listOf("cover_art"))
             manga = mangaRes.data
-            val chapterRes = api.getMangaChapters(mangaId)
+            
+            launch {
+                try {
+                    val aniRes = aniListApi.getMedia(AniListRequest(
+                        query = AniListApi.MEDIA_QUERY,
+                        variables = mapOf("search" to mangaRes.data.getTitle())
+                    ))
+                    aniListMedia = aniRes.data.media
+                } catch (e: Exception) { e.printStackTrace() }
+            }
+
+            val chapterRes = api.getMangaChapters(
+                mangaId = mangaId,
+                langs = listOf("en"),
+                order = "asc",
+                limit = 100
+            )
             chapters = chapterRes.data
         } catch (e: Exception) { 
             e.printStackTrace() 
@@ -74,7 +94,7 @@ fun MangaDetailScreen(
                     ) { Icon(Icons.Default.ArrowBack, null) }
                 },
                 actions = {
-                    val title = manga?.attributes?.title?.get("en") ?: "Manga"
+                    val title = manga?.getTitle() ?: "Manga"
                     IconButton(onClick = { 
                         val sendIntent = Intent().apply {
                             action = Intent.ACTION_SEND
@@ -101,59 +121,69 @@ fun MangaDetailScreen(
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
             )
         }
-    ) { padding ->
+    ) { _ ->
         if (isLoading) {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(strokeCap = androidx.compose.ui.graphics.StrokeCap.Round)
-            }
+            MikoLoadingScreen("Syncing Manga Data...")
         } else {
             manga?.let { currentManga ->
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
                     LazyColumn(modifier = Modifier.fillMaxSize().widthIn(max = 800.dp)) {
                         item {
-                            MangaHeaderExpressive(currentManga, isFav) {
-                            scope.launch {
-                                if (isFav) {
-                                    db.favouriteDao().delete(FavouriteManga(currentManga.id, "", ""))
-                                } else {
-                                    val title = currentManga.attributes.title["en"] ?: currentManga.attributes.title.values.firstOrNull() ?: "Unknown"
-                                    val coverFileName = currentManga.relationships.find { it.type == "cover_art" }?.attributes?.fileName
-                                    val coverUrl = if (coverFileName != null) "https://uploads.mangadex.org/covers/${currentManga.id}/$coverFileName.256.jpg" else null
-                                    db.favouriteDao().insert(FavouriteManga(currentManga.id, title, coverUrl))
+                            MangaHeaderExpressive(currentManga, isFav, aniListMedia) {
+                                scope.launch {
+                                    if (isFav) {
+                                        db.favouriteDao().delete(FavouriteManga(currentManga.id, "", ""))
+                                    } else {
+                                        db.favouriteDao().insert(FavouriteManga(
+                                            id = currentManga.id, 
+                                            title = currentManga.getTitle(), 
+                                            coverUrl = currentManga.getCoverUrl()
+                                        ))
+                                    }
                                 }
                             }
                         }
-                    }
-                    item {
-                        Row(
-                            modifier = Modifier.fillMaxWidth().padding(16.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                "${chapters.size} Chapters",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Button(
-                                onClick = { chapters.firstOrNull()?.let { onChapterClick(currentManga, it) } },
-                                shape = RoundedCornerShape(20.dp),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.primaryContainer, 
-                                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                                )
+                        item {
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Text("Start Reading")
-                                Spacer(Modifier.width(8.dp))
-                                Icon(Icons.Default.KeyboardArrowRight, null)
+                                Text(
+                                    "${chapters.size} Chapters",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                
+                                val currentIndex = chapters.indexOfFirst { it.id == historyEntry?.lastChapterId }
+                                val resumeChapter = if (currentIndex != -1) chapters[currentIndex] else chapters.firstOrNull()
+                                val nextChapterId = if (currentIndex != -1 && currentIndex < chapters.size - 1) chapters[currentIndex + 1].id else if (currentIndex == -1 && chapters.size > 1) chapters[1].id else null
+                                
+                                Button(
+                                    onClick = { 
+                                        resumeChapter?.let { 
+                                            onChapterClick(currentManga, it, if (it.id == historyEntry?.lastChapterId) historyEntry?.lastPage else 0, nextChapterId) 
+                                        } 
+                                    },
+                                    shape = RoundedCornerShape(20.dp),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = MaterialTheme.colorScheme.primaryContainer, 
+                                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                    )
+                                ) {
+                                    Text(if (historyEntry != null) "Resume Ch ${historyEntry?.lastChapterNum ?: "?"}" else "Start Reading")
+                                    Spacer(Modifier.width(8.dp))
+                                    Icon(Icons.Default.KeyboardArrowRight, null)
+                                }
                             }
                         }
-                    }
-                    items(chapters, key = { it.id }) { chapter ->
-                        ChapterItemMinimal(chapter) { onChapterClick(currentManga, chapter) }
-                    }
-                    item {
-                        Spacer(Modifier.height(32.dp))
+                        itemsIndexed(chapters, key = { _, item -> item.id }) { index, chapter ->
+                            val nextId = if (index < chapters.size - 1) chapters[index + 1].id else null
+                            ChapterItemMinimal(chapter) { onChapterClick(currentManga, chapter, 0, nextId) }
+                        }
+                        item {
+                            Spacer(Modifier.height(32.dp))
+                        }
                     }
                 }
             } ?: Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -162,22 +192,13 @@ fun MangaDetailScreen(
         }
     }
 }
-}
 
 @Composable
-fun MangaHeaderExpressive(manga: MangaData, isFav: Boolean, onFavClick: () -> Unit) {
-    val title = manga.attributes.title["en"] ?: manga.attributes.title.values.firstOrNull() ?: "Unknown"
-    val description = manga.attributes.description["en"] ?: manga.attributes.description.values.firstOrNull() ?: ""
-    val coverRel = manga.relationships.find { it.type == "cover_art" }
-    val coverFileName = coverRel?.attributes?.fileName
-    val coverUrl = if (!coverFileName.isNullOrEmpty()) {
-        "https://uploads.mangadex.org/covers/${manga.id}/$coverFileName"
-    } else null
-
+fun MangaHeaderExpressive(manga: MangaData, isFav: Boolean, aniListMedia: AniListMedia?, onFavClick: () -> Unit) {
     Column {
         Box(modifier = Modifier.fillMaxWidth().height(300.dp)) {
             AsyncImage(
-                model = coverUrl,
+                model = manga.getCoverUrl("512"),
                 contentDescription = null,
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop
@@ -199,7 +220,7 @@ fun MangaHeaderExpressive(manga: MangaData, isFav: Boolean, onFavClick: () -> Un
                     .padding(16.dp)
             ) {
                 Text(
-                    title, 
+                    manga.getTitle(), 
                     style = MaterialTheme.typography.headlineMedium, 
                     fontWeight = FontWeight.Black,
                     maxLines = 2,
@@ -226,6 +247,8 @@ fun MangaHeaderExpressive(manga: MangaData, isFav: Boolean, onFavClick: () -> Un
             }
         }
         
+        aniListMedia?.let { AniListInfoCard(it) }
+
         Spacer(Modifier.height(16.dp))
         Text(
             "Description", 
@@ -235,13 +258,80 @@ fun MangaHeaderExpressive(manga: MangaData, isFav: Boolean, onFavClick: () -> Un
         )
         Spacer(Modifier.height(8.dp))
         Text(
-            description, 
+            manga.getDescription(), 
             style = MaterialTheme.typography.bodyMedium, 
-            maxLines = 5, 
+            maxLines = 10, 
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.padding(horizontal = 16.dp),
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
+    }
+}
+
+@Composable
+fun AniListInfoCard(media: AniListMedia) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        shape = RoundedCornerShape(24.dp),
+        color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.3f)
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(Modifier.weight(1f)) {
+                Text(
+                    "AniList Insights",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.secondary,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(Modifier.height(4.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = media.status ?: "Unknown Status",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    if (media.averageScore != null) {
+                        Surface(
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary
+                        ) {
+                            Text(
+                                "${media.averageScore}%",
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                }
+            }
+            
+            val context = LocalContext.current
+            Button(
+                onClick = {
+                    try {
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://anilist.co/manga/${media.id}")).apply {
+                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        }
+                        context.startActivity(intent)
+                    } catch (e: Exception) { e.printStackTrace() }
+                },
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.secondary,
+                    contentColor = MaterialTheme.colorScheme.onSecondary
+                )
+            ) {
+                Text("View")
+            }
+        }
     }
 }
 

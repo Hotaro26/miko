@@ -19,19 +19,31 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.miko.reader.model.HistoryEntry
+import com.miko.reader.model.FavouriteManga
+import com.miko.reader.ui.theme.pressToRaiseClickable
 import kotlinx.coroutines.flow.Flow
 
+// ... (keep class signature and rest unchanged) ...
+// We can target specific lines for replacement instead.
+
+
 @Composable
-fun HomeScreen(historyFlow: Flow<List<HistoryEntry>>, onMangaClick: (HistoryEntry) -> Unit) {
+fun HomeScreen(
+    historyFlow: Flow<List<HistoryEntry>>,
+    favouritesFlow: Flow<List<FavouriteManga>>,
+    carouselCardSize: Int,
+    onHistoryClick: (HistoryEntry) -> Unit,
+    onFavouriteClick: (FavouriteManga) -> Unit
+) {
     val history by historyFlow.collectAsState(initial = emptyList())
+    val favourites by favouritesFlow.collectAsState(initial = emptyList())
 
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .widthIn(max = 1000.dp)
-                .background(MaterialTheme.colorScheme.background),
-            contentPadding = PaddingValues(bottom = 80.dp) // Space for bottom bar
+                .background(MaterialTheme.colorScheme.background)
         ) {
         item {
             Text(
@@ -45,10 +57,10 @@ fun HomeScreen(historyFlow: Flow<List<HistoryEntry>>, onMangaClick: (HistoryEntr
             )
         }
 
-        if (history.isNotEmpty()) {
+        if (favourites.isNotEmpty()) {
             item {
                 Text(
-                    "Recent Activity",
+                    "Saved Manga",
                     style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                     fontWeight = FontWeight.Bold
@@ -61,8 +73,8 @@ fun HomeScreen(historyFlow: Flow<List<HistoryEntry>>, onMangaClick: (HistoryEntr
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    items(history.take(5), key = { it.id }) { entry ->
-                        HistoryCard(entry, onMangaClick)
+                    items(favourites, key = { it.id }) { manga ->
+                        HomeFavouriteCard(manga, carouselCardSize, onFavouriteClick)
                     }
                 }
             }
@@ -95,7 +107,7 @@ fun HomeScreen(historyFlow: Flow<List<HistoryEntry>>, onMangaClick: (HistoryEntr
             }
         } else {
             items(history, key = { "list_${it.id}" }) { entry ->
-                HistoryItem(entry, onMangaClick)
+                HistoryItem(entry, onHistoryClick)
             }
         }
     }
@@ -103,11 +115,39 @@ fun HomeScreen(historyFlow: Flow<List<HistoryEntry>>, onMangaClick: (HistoryEntr
 }
 
 @Composable
+fun HomeFavouriteCard(manga: FavouriteManga, cardSize: Int, onClick: (FavouriteManga) -> Unit) {
+    Column(
+        modifier = Modifier
+            .width(cardSize.dp)
+            .pressToRaiseClickable { onClick(manga) }
+    ) {
+        AsyncImage(
+            model = manga.coverUrl,
+            contentDescription = null,
+            modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(0.7f)
+                .clip(RoundedCornerShape(20.dp)),
+            contentScale = ContentScale.Crop
+        )
+        Spacer(Modifier.height(8.dp))
+        Text(
+            text = manga.title,
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.Bold,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+            lineHeight = 16.sp
+        )
+    }
+}
+
+@Composable
 fun HistoryCard(entry: HistoryEntry, onClick: (HistoryEntry) -> Unit) {
     Column(
         modifier = Modifier
             .width(140.dp)
-            .clickable { onClick(entry) }
+            .pressToRaiseClickable { onClick(entry) }
     ) {
         AsyncImage(
             model = entry.coverUrl,
