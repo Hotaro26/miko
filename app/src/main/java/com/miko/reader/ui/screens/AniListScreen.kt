@@ -22,6 +22,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material.icons.outlined.Sync
 import androidx.compose.material3.*
@@ -53,7 +54,8 @@ fun AniListScreen(
     user: AniListUser?, 
     carouselCardSize: Int,
     onConnectClick: () -> Unit,
-    onMediaClick: (AniListMedia) -> Unit
+    onMediaClick: (AniListMedia) -> Unit,
+    onBack: () -> Unit
 ) {
     var searchQuery by remember { mutableStateOf("") }
     var searchMediaList by remember { mutableStateOf(emptyList<AniListMedia>()) }
@@ -97,12 +99,15 @@ fun AniListScreen(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = 8.dp)
                 .padding(top = 48.dp, bottom = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Column {
+            IconButton(onClick = onBack) {
+                Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+            }
+            Spacer(Modifier.width(8.dp))
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
                     "AniList",
                     style = MaterialTheme.typography.displaySmall,

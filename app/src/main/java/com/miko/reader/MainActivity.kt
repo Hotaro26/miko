@@ -473,17 +473,17 @@ class MainActivity : ComponentActivity() {
                                             NavigationBarItem(
                                                 icon = {
                                                     AnimatedNavigationIcon(
-                                                        selected = currentRoute == "anilist",
-                                                        outlinedIcon = Icons.Outlined.Cloud,
-                                                        filledIcon = Icons.Filled.Cloud,
-                                                        contentDescription = "AniList"
+                                                        selected = currentRoute == "offline",
+                                                        outlinedIcon = Icons.Outlined.Download,
+                                                        filledIcon = Icons.Filled.Download,
+                                                        contentDescription = "Offline"
                                                     )
                                                 },
-                                                label = { Text("AniList") },
-                                                selected = currentRoute == "anilist",
+                                                label = { Text("Offline") },
+                                                selected = currentRoute == "offline",
                                                 onClick = { 
                                                     triggerHaptic(hapticsEnabled)
-                                                    navController.navigate("anilist") { launchSingleTop = true } 
+                                                    navController.navigate("offline") { launchSingleTop = true } 
                                                 }
                                             )
                                             NavigationBarItem(
@@ -511,7 +511,7 @@ class MainActivity : ComponentActivity() {
                                     modifier = Modifier
                                         .padding(
                                             top = padding.calculateTopPadding(),
-                                            bottom = if (currentRoute == "explore" || currentRoute == "anilist") 0.dp else padding.calculateBottomPadding()
+                                            bottom = if (currentRoute == "explore" || currentRoute == "anilist_full") 0.dp else padding.calculateBottomPadding()
                                         )
                                         .fillMaxSize()
                                 ) {
@@ -532,10 +532,26 @@ class MainActivity : ComponentActivity() {
                                              )
                                          }
                                         composable("fav") {
-                                            FavouritesScreen(db.favouriteDao().getAllFavourites()) { fav ->
-                                                triggerHaptic(hapticsEnabled)
-                                                navigateWithAds("detail/${fav.id}")
-                                            }
+                                            FavouritesScreen(
+                                                favouritesFlow = db.favouriteDao().getAllFavourites(),
+                                                onAniListClick = {
+                                                    triggerHaptic(hapticsEnabled)
+                                                    navController.navigate("anilist_full")
+                                                },
+                                                onMangaClick = { mangaId ->
+                                                    triggerHaptic(hapticsEnabled)
+                                                    navigateWithAds("detail/$mangaId")
+                                                }
+                                            )
+                                        }
+                                        composable("offline") {
+                                            OfflineScreen(
+                                                downloadsFlow = db.downloadDao().getAllDownloads(),
+                                                onMangaClick = { mangaId ->
+                                                    triggerHaptic(hapticsEnabled)
+                                                    navigateWithAds("detail/$mangaId")
+                                                }
+                                            )
                                         }
                                          composable("explore") {
                                              ExploreScreen(
@@ -550,7 +566,7 @@ class MainActivity : ComponentActivity() {
                                                  navigateWithAds("detail/${manga.id}")
                                              }
                                          }
-                                         composable("anilist") {
+                                         composable("anilist_full") {
                                              AniListScreen(
                                                  api = aniListApi, 
                                                  user = aniListUser,
@@ -583,7 +599,8 @@ class MainActivity : ComponentActivity() {
                                                              }
                                                          } catch (e: Exception) { e.printStackTrace() }
                                                      }
-                                                 }
+                                                 },
+                                                 onBack = { navController.popBackStack() }
                                              )
                                          }
                                          composable("about") {
@@ -657,7 +674,8 @@ class MainActivity : ComponentActivity() {
                                             val page = backStackEntry.arguments?.getInt("page") ?: 0
                                             
                                             ReaderScreen(
-                                                api = api, 
+                                                api = api,
+                                                db = db,
                                                 mangaId = mangaId,
                                                 chapterId = chapterId, 
                                                 initialPage = page,

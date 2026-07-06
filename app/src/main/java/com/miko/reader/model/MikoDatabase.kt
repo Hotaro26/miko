@@ -51,8 +51,45 @@ interface FavouriteDao {
     suspend fun delete(manga: FavouriteManga)
 }
 
-@Database(entities = [HistoryEntry::class, FavouriteManga::class], version = 3, exportSchema = false)
+@Entity(tableName = "downloaded_chapters")
+data class DownloadedChapter(
+    @PrimaryKey val chapterId: String,
+    val mangaId: String,
+    val mangaTitle: String,
+    val mangaCoverUrl: String?,
+    val chapterTitle: String,
+    val chapterNum: String,
+    val totalPages: Int,
+    val downloadedPages: Int,
+    val isDownloadComplete: Boolean,
+    val folderPath: String, // relative to context.filesDir
+    val timestamp: Long = System.currentTimeMillis()
+)
+
+@Dao
+interface DownloadDao {
+    @Query("SELECT * FROM downloaded_chapters ORDER BY timestamp DESC")
+    fun getAllDownloads(): Flow<List<DownloadedChapter>>
+
+    @Query("SELECT * FROM downloaded_chapters WHERE mangaId = :mangaId ORDER BY timestamp DESC")
+    fun getDownloadsForManga(mangaId: String): Flow<List<DownloadedChapter>>
+
+    @Query("SELECT * FROM downloaded_chapters WHERE chapterId = :chapterId")
+    suspend fun getDownloadByChapterId(chapterId: String): DownloadedChapter?
+    
+    @Query("SELECT * FROM downloaded_chapters WHERE chapterId = :chapterId")
+    fun getDownloadByChapterIdFlow(chapterId: String): Flow<DownloadedChapter?>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insert(download: DownloadedChapter)
+
+    @Delete
+    suspend fun delete(download: DownloadedChapter)
+}
+
+@Database(entities = [HistoryEntry::class, FavouriteManga::class, DownloadedChapter::class], version = 4, exportSchema = false)
 abstract class MikoDatabase : RoomDatabase() {
     abstract fun historyDao(): HistoryDao
     abstract fun favouriteDao(): FavouriteDao
+    abstract fun downloadDao(): DownloadDao
 }

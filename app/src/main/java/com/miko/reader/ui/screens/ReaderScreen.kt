@@ -33,12 +33,16 @@ import com.miko.reader.model.ChapterData
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
+import com.miko.reader.model.MikoDatabase
+import java.io.File
+
 enum class ReadingMode { Vertical, Paged }
 
 @OptIn(ExperimentalMaterial3Api::class, androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
 fun ReaderScreen(
     api: MangaDexApi, 
+    db: MikoDatabase,
     mangaId: String,
     chapterId: String, 
     initialPage: Int = 0,
@@ -50,7 +54,7 @@ fun ReaderScreen(
     val prefs = remember { context.getSharedPreferences("miko_prefs", Context.MODE_PRIVATE) }
     val scope = rememberCoroutineScope()
     
-    var images by remember { mutableStateOf<List<String>>(emptyList()) }
+    var images by remember { mutableStateOf<List<Any>>(emptyList()) }
     var chapters by remember { mutableStateOf<List<ChapterData>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
     
@@ -72,6 +76,22 @@ fun ReaderScreen(
                     limit = 100
                 )
                 chapters = chapterRes.data
+            }
+
+            val downloadedChapter = db.downloadDao().getDownloadByChapterId(chapterId)
+            if (downloadedChapter != null && downloadedChapter.isDownloadComplete) {
+                val folder = File(downloadedChapter.folderPath)
+                if (folder.exists()) {
+                    val localImages = mutableListOf<File>()
+                    for (i in 0 until downloadedChapter.totalPages) {
+                        val file = File(folder, "$i.jpg")
+                        if (file.exists()) localImages.add(file)
+                    }
+                    if (localImages.size == downloadedChapter.totalPages) {
+                        images = localImages
+                        return@LaunchedEffect
+                    }
+                }
             }
 
             val res = api.getAtHomeServer(chapterId)

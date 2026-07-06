@@ -49,6 +49,7 @@ fun MangaDetailScreen(
     var historyEntry by remember { mutableStateOf<HistoryEntry?>(null) }
     
     val isFav by db.favouriteDao().isFavourite(mangaId).collectAsState(initial = false)
+    val downloads by db.downloadDao().getDownloadsForManga(mangaId).collectAsState(initial = emptyList())
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var showMenu by remember { mutableStateOf(false) }
@@ -179,7 +180,28 @@ fun MangaDetailScreen(
                         }
                         itemsIndexed(chapters, key = { _, item -> item.id }) { index, chapter ->
                             val nextId = if (index < chapters.size - 1) chapters[index + 1].id else null
-                            ChapterItemMinimal(chapter) { onChapterClick(currentManga, chapter, 0, nextId) }
+                            val downloadState = downloads.find { it.chapterId == chapter.id }
+                            
+                            ChapterItemMinimal(
+                                chapter = chapter,
+                                downloadState = downloadState,
+                                onClick = { onChapterClick(currentManga, chapter, 0, nextId) },
+                                onDownloadClick = {
+                                    scope.launch {
+                                        com.miko.reader.util.DownloadManager.downloadChapter(
+                                            context = context,
+                                            api = api,
+                                            db = db,
+                                            mangaId = mangaId,
+                                            mangaTitle = currentManga.getTitle(),
+                                            mangaCoverUrl = currentManga.getCoverUrl(),
+                                            chapterId = chapter.id,
+                                            chapterTitle = chapter.attributes.title ?: "Chapter ${chapter.attributes.chapter ?: "?"}",
+                                            chapterNum = chapter.attributes.chapter ?: "?"
+                                        )
+                                    }
+                                }
+                            )
                         }
                         item {
                             Spacer(Modifier.height(32.dp))
@@ -336,7 +358,12 @@ fun AniListInfoCard(media: AniListMedia) {
 }
 
 @Composable
-fun ChapterItemMinimal(chapter: ChapterData, onClick: () -> Unit) {
+fun ChapterItemMinimal(
+    chapter: ChapterData, 
+    downloadState: DownloadedChapter?,
+    onClick: () -> Unit,
+    onDownloadClick: () -> Unit
+) {
     val num = chapter.attributes.chapter ?: "?"
     val title = chapter.attributes.title ?: "Chapter $num"
     
@@ -368,6 +395,42 @@ fun ChapterItemMinimal(chapter: ChapterData, onClick: () -> Unit) {
                     )
                 }
             }
+            
+            // Download indicator
+            Box(
+                modifier = Modifier.size(48.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                if (downloadState != null) {
+                    if (downloadState.isDownloadComplete) {
+                        Icon(
+                            Icons.Default.CheckCircle, 
+                            contentDescription = "Downloaded",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    } else {
+                        val progress = if (downloadState.totalPages > 0) {
+                            downloadState.downloadedPages.toFloat() / downloadState.totalPages.toFloat()
+                        } else 0f
+                        CircularProgressIndicator(
+                            progress = progress,
+                            modifier = Modifier.size(24.dp),
+                            color = MaterialTheme.colorScheme.primary,
+                            strokeWidth = 2.dp
+                        )
+                    }
+                } else {
+                    IconButton(onClick = onDownloadClick) {
+                        Icon(
+                            Icons.Default.Download, 
+                            contentDescription = "Download",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                        )
+                    }
+                }
+            }
+            
+            Spacer(Modifier.width(8.dp))
             Icon(
                 Icons.Default.KeyboardArrowRight, 
                 null, 

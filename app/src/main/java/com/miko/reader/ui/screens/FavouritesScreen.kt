@@ -17,12 +17,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.graphics.Color
 import coil.compose.AsyncImage
 import com.miko.reader.model.FavouriteManga
 import kotlinx.coroutines.flow.Flow
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Cloud
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FavouritesScreen(favouritesFlow: Flow<List<FavouriteManga>>, onMangaClick: (FavouriteManga) -> Unit) {
+fun FavouritesScreen(
+    favouritesFlow: Flow<List<FavouriteManga>>, 
+    onAniListClick: () -> Unit,
+    onMangaClick: (String) -> Unit
+) {
     val favourites by favouritesFlow.collectAsState(initial = emptyList())
 
     Column(
@@ -30,15 +38,45 @@ fun FavouritesScreen(favouritesFlow: Flow<List<FavouriteManga>>, onMangaClick: (
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        Text(
-            "Library",
-            style = MaterialTheme.typography.displaySmall,
+        Row(
             modifier = Modifier
+                .fillMaxWidth()
                 .padding(horizontal = 16.dp)
                 .padding(top = 48.dp, bottom = 16.dp),
-            fontWeight = FontWeight.Black,
-            letterSpacing = (-1).sp
-        )
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                "Library",
+                style = MaterialTheme.typography.displaySmall,
+                fontWeight = FontWeight.Black,
+                letterSpacing = (-1).sp
+            )
+            
+            Surface(
+                onClick = onAniListClick,
+                shape = RoundedCornerShape(50),
+                color = MaterialTheme.colorScheme.primaryContainer
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        Icons.Default.Cloud,
+                        contentDescription = "AniList",
+                        modifier = Modifier.size(20.dp),
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        "AniList",
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        }
 
         if (favourites.isEmpty()) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -57,7 +95,7 @@ fun FavouritesScreen(favouritesFlow: Flow<List<FavouriteManga>>, onMangaClick: (
                 modifier = Modifier.fillMaxSize()
             ) {
                 items(favourites, key = { it.id }) { manga ->
-                    FavouriteCard(manga, onMangaClick)
+                    FavouriteCard(manga, { onMangaClick(it.id) })
                 }
             }
         }
