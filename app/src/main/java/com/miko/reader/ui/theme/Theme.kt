@@ -176,7 +176,7 @@ fun Modifier.pressToRaiseClickable(onClick: () -> Unit): Modifier = composed {
         .pressToRaise(interactionSource)
         .clickable(
             interactionSource = interactionSource,
-            indication = LocalIndication.current,
+            indication = null,
             onClick = onClick
         )
 }

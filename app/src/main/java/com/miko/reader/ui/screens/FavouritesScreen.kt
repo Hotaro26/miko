@@ -23,6 +23,7 @@ import com.miko.reader.model.FavouriteManga
 import kotlinx.coroutines.flow.Flow
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Cloud
+import com.miko.reader.ui.theme.pressToRaiseClickable
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -107,7 +108,7 @@ fun FavouriteCard(manga: FavouriteManga, onClick: (FavouriteManga) -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick(manga) }
+            .pressToRaiseClickable { onClick(manga) }
     ) {
         AsyncImage(
             model = manga.coverUrl,

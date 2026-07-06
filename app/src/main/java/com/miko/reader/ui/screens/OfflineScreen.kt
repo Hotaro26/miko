@@ -16,10 +16,15 @@ import com.miko.reader.model.DownloadedChapter
 import com.miko.reader.model.FavouriteManga
 import kotlinx.coroutines.flow.Flow
 
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Terminal
+
 @Composable
 fun OfflineScreen(
     downloadsFlow: Flow<List<DownloadedChapter>>,
-    onMangaClick: (String) -> Unit
+    onMangaClick: (String) -> Unit,
+    onLogsClick: () -> Unit
 ) {
     val allDownloads by downloadsFlow.collectAsState(initial = emptyList())
     
@@ -46,7 +51,8 @@ fun OfflineScreen(
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)
                 .padding(top = 48.dp, bottom = 16.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
                 "Offline",
@@ -54,6 +60,30 @@ fun OfflineScreen(
                 fontWeight = FontWeight.Black,
                 letterSpacing = (-1).sp
             )
+            
+            Surface(
+                onClick = onLogsClick,
+                shape = RoundedCornerShape(50),
+                color = MaterialTheme.colorScheme.secondaryContainer
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        Icons.Default.Terminal,
+                        contentDescription = "Logs",
+                        modifier = Modifier.size(20.dp),
+                        tint = MaterialTheme.colorScheme.onSecondaryContainer
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        "Logs",
+                        color = MaterialTheme.colorScheme.onSecondaryContainer,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
         }
 
         if (downloadedManga.isEmpty()) {

@@ -49,6 +49,7 @@ import com.miko.reader.api.MangaDexApi
 import com.miko.reader.model.*
 import com.miko.reader.ui.components.MikoLoadingScreen
 import com.miko.reader.ui.screens.*
+import com.miko.reader.ui.screens.LogsScreen
 import com.miko.reader.ui.theme.AppTheme
 import com.miko.reader.ui.theme.MikoTheme
 import com.miko.reader.ui.theme.pressToRaise
@@ -198,7 +199,7 @@ class MainActivity : ComponentActivity() {
                                 val tagName = json.getString("tag_name")
                                 val htmlUrl = json.getString("html_url")
                                 val currentVersion = "v${BuildConfig.VERSION_NAME}"
-                                if (tagName != currentVersion && tagName > currentVersion) {
+                                if (tagName != currentVersion) {
                                     updateVersion = tagName
                                     updateUrl = htmlUrl
                                 }
@@ -230,8 +231,22 @@ class MainActivity : ComponentActivity() {
                     )
                 }
 
+                var hasSeenOnboarding by remember { mutableStateOf(prefs.getBoolean("has_seen_onboarding", false)) }
+
                 if (isAppInitializing) {
                     MikoLoadingScreen("Initializing Miko...")
+                } else if (!hasSeenOnboarding) {
+                    OnboardingScreen(
+                        currentTheme = selectedTheme,
+                        onThemeSelected = { 
+                            selectedTheme = it
+                            prefs.edit().putString("app_theme", it.name).apply()
+                        },
+                        onComplete = { 
+                            prefs.edit().putBoolean("has_seen_onboarding", true).apply()
+                            hasSeenOnboarding = true 
+                        }
+                    )
                 } else {
                     Surface(
                         modifier = Modifier.fillMaxSize(),
@@ -550,7 +565,17 @@ class MainActivity : ComponentActivity() {
                                                 onMangaClick = { mangaId ->
                                                     triggerHaptic(hapticsEnabled)
                                                     navigateWithAds("detail/$mangaId")
+                                                },
+                                                onLogsClick = {
+                                                    triggerHaptic(hapticsEnabled)
+                                                    navController.navigate("logs")
                                                 }
+                                            )
+                                        }
+                                        composable("logs") {
+                                            LogsScreen(
+                                                logsFlow = com.miko.reader.util.DownloadManager.logs,
+                                                onBack = { navController.popBackStack() }
                                             )
                                         }
                                          composable("explore") {
