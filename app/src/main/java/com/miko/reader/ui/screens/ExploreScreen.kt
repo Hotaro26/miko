@@ -213,6 +213,7 @@ fun SearchBar(query: String, onQueryChange: (String) -> Unit, onClear: () -> Uni
                     onValueChange = onQueryChange,
                     modifier = Modifier.fillMaxWidth(),
                     textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
+                    cursorBrush = androidx.compose.ui.graphics.SolidColor(MaterialTheme.colorScheme.onSurface),
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                     singleLine = true
                 )

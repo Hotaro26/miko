@@ -185,7 +185,7 @@ fun AniListScreen(
                     SectionHeader("Recently Updated (Releasing)")
                     HorizontalMediaList(releasingMediaList, carouselCardSize, onMediaClick)
                     
-                    Spacer(Modifier.height(100.dp))
+                    Spacer(Modifier.height(180.dp))
                 }
             }
         } else {
@@ -196,7 +196,7 @@ fun AniListScreen(
             } else {
                 LazyVerticalGrid(
                     columns = GridCells.Adaptive(minSize = carouselCardSize.dp),
-                    contentPadding = PaddingValues(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 96.dp),
+                    contentPadding = PaddingValues(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 180.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     modifier = Modifier.fillMaxSize()

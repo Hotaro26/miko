@@ -129,9 +129,17 @@ fun ReaderScreen(
             if (readingMode == ReadingMode.Vertical) {
                 LazyColumn(modifier = Modifier.fillMaxSize(), state = listState) {
                     itemsIndexed(images) { _, url ->
-                        AsyncImage(
+                        coil.compose.SubcomposeAsyncImage(
                             model = url,
                             contentDescription = null,
+                            loading = {
+                                Box(
+                                    modifier = Modifier.fillMaxWidth().aspectRatio(0.7f),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                                }
+                            },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.05f)),
@@ -170,9 +178,17 @@ fun ReaderScreen(
                         modifier = Modifier.fillMaxSize(),
                         pageSpacing = 8.dp
                     ) { page ->
-                        AsyncImage(
+                        coil.compose.SubcomposeAsyncImage(
                             model = images[page],
                             contentDescription = null,
+                            loading = {
+                                Box(
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                                }
+                            },
                             modifier = Modifier.fillMaxSize(),
                             contentScale = ContentScale.Fit
                         )

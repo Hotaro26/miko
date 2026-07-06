@@ -183,6 +183,53 @@ class MainActivity : ComponentActivity() {
             }
 
             MikoTheme(darkTheme = isDarkTheme, theme = selectedTheme) {
+                var updateUrl by remember { mutableStateOf<String?>(null) }
+                var updateVersion by remember { mutableStateOf<String?>(null) }
+
+                LaunchedEffect(Unit) {
+                    kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                        try {
+                            val url = java.net.URL("https://api.github.com/repos/Hotaro26/miko/releases/latest")
+                            val connection = url.openConnection() as java.net.HttpURLConnection
+                            connection.requestMethod = "GET"
+                            if (connection.responseCode == 200) {
+                                val response = connection.inputStream.bufferedReader().use { it.readText() }
+                                val json = org.json.JSONObject(response)
+                                val tagName = json.getString("tag_name")
+                                val htmlUrl = json.getString("html_url")
+                                val currentVersion = "v${BuildConfig.VERSION_NAME}"
+                                if (tagName != currentVersion && tagName > currentVersion) {
+                                    updateVersion = tagName
+                                    updateUrl = htmlUrl
+                                }
+                            }
+                        } catch (e: Exception) { e.printStackTrace() }
+                    }
+                }
+
+                if (updateUrl != null && updateVersion != null) {
+                    AlertDialog(
+                        onDismissRequest = { updateUrl = null },
+                        title = { Text("Update Available") },
+                        text = { Text("A new version ($updateVersion) of Miko is available. Would you like to update?") },
+                        confirmButton = {
+                            TextButton(onClick = {
+                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(updateUrl))
+                                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                startActivity(intent)
+                                updateUrl = null
+                            }) {
+                                Text("Update")
+                            }
+                        },
+                        dismissButton = {
+                            TextButton(onClick = { updateUrl = null }) {
+                                Text("Dismiss")
+                            }
+                        }
+                    )
+                }
+
                 if (isAppInitializing) {
                     MikoLoadingScreen("Initializing Miko...")
                 } else {
