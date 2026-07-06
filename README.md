@@ -3,22 +3,23 @@
 Miko is a high-performance, ultra-minimalist manga reader built with **Kotlin** and **Jetpack Compose**. It follows the **Material 3 Expressive** design guidelines to provide a fluid, modern, and highly customizable reading experience.
 
 <p align="center">
+<img width="300" height="300" alt="ChatGPT Image Jul 6, 2026, 06_11_52 PM" src="https://github.com/user-attachments/assets/ee4b48bf-cfc1-44f1-95b8-464d0bdbb6da" />
 
   
 </p>
 
 ##  Features
 
-- ** Performance-First**: Built with native Kotlin for smooth scrolling and fast image streaming using Coil.
-- ** Material 3 Expressive**: Large corner radii, bold typography, and seamless transitions.
-- ** Deep Customization**:
+-  **Performance-First**: Built with native Kotlin for smooth scrolling and fast image streaming using Coil.
+-  **Material 3 Expressive**: Large corner radii, bold typography, and seamless transitions.
+-  **Deep Customization**:
     - **Dynamic Color (M3)**: Automatically adapts to your system wallpaper (Android 12+).
     - **Theme Modes**: Full support for System, Light, and Dark modes.
     - **Color Schemes**: Choose from presets like Lavender, Forest, Midnight, Rose, and a high-contrast Monochrome.
-- ** Powered by MangaDex**: Access a massive library of manga with built-in search and suggestions.
-- ** Flexible Reader**: Supports both **Vertical (Webtoon)** and **Paged** reading modes with a progress indicator.
-- ** History & Library**: Automatically tracks your reading progress and lets you save your favorites locally using Room.
-- ** Support Developer**: Optional opt-in ads and direct UPI support to help keep the project alive.
+- **Powered by MangaDex**: Access a massive library of manga with built-in search and suggestions.
+- **Flexible Reader**: Supports both **Vertical (Webtoon)** and **Paged** reading modes with a progress indicator.
+- **History & Library**: Automatically tracks your reading progress and lets you save your favorites locally using Room.
+- **Support Developer**: Optional opt-in ads and direct UPI support to help keep the project alive.
 
 ##  Screenshots
 
