@@ -62,6 +62,10 @@ object DownloadManager {
         _logs.value = _logs.value + "[$time] $message"
     }
 
+    fun clearLogs() {
+        _logs.value = emptyList()
+    }
+
     fun downloadChapter(
         context: Context,
         api: MangaDexApi,

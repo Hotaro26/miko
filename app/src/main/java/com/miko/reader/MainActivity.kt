@@ -575,7 +575,8 @@ class MainActivity : ComponentActivity() {
                                         composable("logs") {
                                             LogsScreen(
                                                 logsFlow = com.miko.reader.util.DownloadManager.logs,
-                                                onBack = { navController.popBackStack() }
+                                                onBack = { navController.popBackStack() },
+                                                onClearLogs = { com.miko.reader.util.DownloadManager.clearLogs() }
                                             )
                                         }
                                          composable("explore") {

@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -22,7 +23,8 @@ import kotlinx.coroutines.flow.Flow
 @Composable
 fun LogsScreen(
     logsFlow: Flow<List<String>>,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onClearLogs: () -> Unit
 ) {
     val logs by logsFlow.collectAsState(initial = emptyList())
     val listState = rememberLazyListState()
@@ -33,46 +35,60 @@ fun LogsScreen(
         }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFF1E1E1E))
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Color(0xFF2D2D2D))
-                .padding(horizontal = 8.dp)
-                .padding(top = 48.dp, bottom = 16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(onClick = onBack) {
-                Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
+    Scaffold(
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = onClearLogs,
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+            ) {
+                Icon(Icons.Default.Delete, contentDescription = "Clear Logs")
             }
-            Spacer(Modifier.width(8.dp))
-            Text(
-                "Terminal Logs",
-                color = Color.White,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                fontFamily = FontFamily.Monospace
-            )
-        }
-
-        LazyColumn(
-            state = listState,
+        },
+        containerColor = Color(0xFF1E1E1E)
+    ) { paddingValues ->
+        Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp)
+                .padding(paddingValues)
+                .background(Color(0xFF1E1E1E))
         ) {
-            items(logs) { log ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color(0xFF2D2D2D))
+                    .padding(horizontal = 8.dp)
+                    .padding(top = 48.dp, bottom = 16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(onClick = onBack) {
+                    Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
+                }
+                Spacer(Modifier.width(8.dp))
                 Text(
-                    text = log,
-                    color = Color(0xFF00FF00),
-                    fontFamily = FontFamily.Monospace,
-                    fontSize = 12.sp,
-                    modifier = Modifier.padding(vertical = 2.dp)
+                    "Terminal Logs",
+                    color = Color.White,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = FontFamily.Monospace
                 )
+            }
+
+            LazyColumn(
+                state = listState,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp)
+            ) {
+                items(logs) { log ->
+                    Text(
+                        text = log,
+                        color = Color(0xFF00FF00),
+                        fontFamily = FontFamily.Monospace,
+                        fontSize = 12.sp,
+                        modifier = Modifier.padding(vertical = 2.dp)
+                    )
+                }
             }
         }
     }
