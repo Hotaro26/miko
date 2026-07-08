@@ -67,12 +67,13 @@ Miko is designed for "no-IDE" development and can be compiled entirely from the 
 - **License**: MIT / Apache 2.0
 
 ---
+
 ## Star History
 
 <a href="https://www.star-history.com/?repos=Hotaro26%2Fmiko.git&type=date&legend=top-left">
  <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=Hotaro26/miko.git&type=date&theme=dark&legend=top-left" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=Hotaro26/miko.git&type=date&legend=top-left" />
-   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=Hotaro26/miko.git&type=date&legend=top-left" />
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=Hotaro26/miko.git&type=date&theme=dark&legend=top-left&sealed_token=wcfKetPedn4XpDDgUr7w1o04d769wnHQ1Ch09O2qkUESaJTAgQZPQmiNv4OIVp1u3RB7jez-1FRTlBJpZvJItkAY5JVsUaomwk2PyAn_1WlRqwZvni4j5DeqwjTO5Fg3HEIlF_9JaOlKNXxTXHglXrcKxzrVWSslQxihtv9r-jg2SFp6GEmNNsELInTW" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=Hotaro26/miko.git&type=date&legend=top-left&sealed_token=wcfKetPedn4XpDDgUr7w1o04d769wnHQ1Ch09O2qkUESaJTAgQZPQmiNv4OIVp1u3RB7jez-1FRTlBJpZvJItkAY5JVsUaomwk2PyAn_1WlRqwZvni4j5DeqwjTO5Fg3HEIlF_9JaOlKNXxTXHglXrcKxzrVWSslQxihtv9r-jg2SFp6GEmNNsELInTW" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=Hotaro26/miko.git&type=date&legend=top-left&sealed_token=wcfKetPedn4XpDDgUr7w1o04d769wnHQ1Ch09O2qkUESaJTAgQZPQmiNv4OIVp1u3RB7jez-1FRTlBJpZvJItkAY5JVsUaomwk2PyAn_1WlRqwZvni4j5DeqwjTO5Fg3HEIlF_9JaOlKNXxTXHglXrcKxzrVWSslQxihtv9r-jg2SFp6GEmNNsELInTW" />
  </picture>
 </a>
