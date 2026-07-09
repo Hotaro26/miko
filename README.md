@@ -46,16 +46,12 @@ Miko is designed for "no-IDE" development and can be compiled entirely from the 
    cd miko
    ```
 
-2. **Setup your AdMob (Optional)**:
-   - Replace the `APPLICATION_ID` in `app/src/main/AndroidManifest.xml`.
-   - Replace the `AD_UNIT_ID` in `app/src/main/java/com/miko/reader/util/AdHelper.kt`.
-
-3. **Build Debug APK**:
+2. **Build Debug APK**:
    ```bash
    ./gradlew assembleDebug
    ```
 
-4. **Install on Device**:
+3. **Install on Device**:
    ```bash
    ./gradlew installDebug
    ```
