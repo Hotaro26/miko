@@ -1,0 +1,1 @@
+High-performance, ultra-minimalist manga reader with Material 3 design.
