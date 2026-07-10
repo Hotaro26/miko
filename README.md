@@ -1,9 +1,11 @@
+<p align="center">
+<img width="300" height="300" alt="miko1" src="https://github.com/user-attachments/assets/78d26201-6189-4a29-9631-cc81fef51855" />
+
 #  Miko [Manga Reader]
 
 Miko is a high-performance, ultra-minimalist manga reader built with **Kotlin** and **Jetpack Compose**. It follows the **Material 3 Expressive** design guidelines to provide a fluid, modern, and highly customizable reading experience. It has online catalogues from manga dex database along with anilist integration!
 
-<p align="center">
-<img width="300" height="300" alt="miko1" src="https://github.com/user-attachments/assets/78d26201-6189-4a29-9631-cc81fef51855" />
+
 
   
 </p>
