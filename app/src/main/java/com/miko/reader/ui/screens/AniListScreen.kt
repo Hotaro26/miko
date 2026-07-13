@@ -127,7 +127,7 @@ fun AniListScreen(
             if (user == null) {
                 Button(
                     onClick = onConnectClick,
-                    shape = RoundedCornerShape(16.dp),
+                    shape = MaterialTheme.shapes.medium,
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primaryContainer,
                         contentColor = MaterialTheme.colorScheme.onPrimaryContainer
@@ -253,7 +253,7 @@ fun AniListMediaCard(media: AniListMedia, modifier: Modifier = Modifier, onClick
                 modifier = Modifier
                     .fillMaxWidth()
                     .aspectRatio(0.7f)
-                    .clip(RoundedCornerShape(20.dp)),
+                    .clip(MaterialTheme.shapes.medium),
                 contentScale = ContentScale.Crop
             )
             if (media.averageScore != null) {

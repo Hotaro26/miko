@@ -17,12 +17,14 @@ import com.miko.reader.model.FavouriteManga
 import kotlinx.coroutines.flow.Flow
 
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Terminal
 
 @Composable
 fun OfflineScreen(
     downloadsFlow: Flow<List<DownloadedChapter>>,
+    carouselCardSize: Int,
     onMangaClick: (String) -> Unit,
     onLogsClick: () -> Unit
 ) {
@@ -63,7 +65,7 @@ fun OfflineScreen(
             
             Surface(
                 onClick = onLogsClick,
-                shape = RoundedCornerShape(50),
+                shape = CircleShape,
                 color = MaterialTheme.colorScheme.secondaryContainer
             ) {
                 Row(
@@ -96,7 +98,7 @@ fun OfflineScreen(
             }
         } else {
             LazyVerticalGrid(
-                columns = GridCells.Adaptive(minSize = 120.dp),
+                columns = GridCells.Adaptive(minSize = carouselCardSize.dp),
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(20.dp),
                 horizontalArrangement = Arrangement.spacedBy(16.dp),

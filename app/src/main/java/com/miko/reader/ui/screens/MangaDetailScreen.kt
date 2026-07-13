@@ -166,7 +166,7 @@ fun MangaDetailScreen(
                                             onChapterClick(currentManga, it, if (it.id == historyEntry?.lastChapterId) historyEntry?.lastPage else 0, nextChapterId) 
                                         } 
                                     },
-                                    shape = RoundedCornerShape(20.dp),
+                                    shape = MaterialTheme.shapes.medium,
                                     colors = ButtonDefaults.buttonColors(
                                         containerColor = MaterialTheme.colorScheme.primaryContainer, 
                                         contentColor = MaterialTheme.colorScheme.onPrimaryContainer
@@ -263,7 +263,7 @@ fun MangaHeaderExpressive(manga: MangaData, isFav: Boolean, aniListMedia: AniLis
                                 tint = if (isFav) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         },
-                        shape = RoundedCornerShape(16.dp)
+                        shape = MaterialTheme.shapes.medium
                     )
                 }
             }
@@ -296,7 +296,7 @@ fun AniListInfoCard(media: AniListMedia) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp),
-        shape = RoundedCornerShape(24.dp),
+        shape = MaterialTheme.shapes.large,
         color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.3f)
     ) {
         Row(
@@ -345,7 +345,7 @@ fun AniListInfoCard(media: AniListMedia) {
                         context.startActivity(intent)
                     } catch (e: Exception) { e.printStackTrace() }
                 },
-                shape = RoundedCornerShape(12.dp),
+                shape = MaterialTheme.shapes.small,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.secondary,
                     contentColor = MaterialTheme.colorScheme.onSecondary
@@ -372,7 +372,7 @@ fun ChapterItemMinimal(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 4.dp),
-        shape = RoundedCornerShape(16.dp),
+        shape = MaterialTheme.shapes.medium,
         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f)
     ) {
         Row(

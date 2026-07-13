@@ -38,11 +38,11 @@ private val LightColorScheme = lightColorScheme(
 )
 
 private val M3ExpressiveShapes = Shapes(
-    extraSmall = RoundedCornerShape(8.dp),
-    small = RoundedCornerShape(12.dp),
+    extraSmall = RoundedCornerShape(4.dp),
+    small = RoundedCornerShape(8.dp),
     medium = RoundedCornerShape(20.dp),
-    large = RoundedCornerShape(28.dp),
-    extraLarge = RoundedCornerShape(36.dp)
+    large = RoundedCornerShape(32.dp),
+    extraLarge = RoundedCornerShape(48.dp)
 )
 
 enum class AppTheme(val label: String) {
@@ -148,18 +148,18 @@ fun MikoTheme(
 fun Modifier.pressToRaise(interactionSource: MutableInteractionSource): Modifier = composed {
     val isPressed by interactionSource.collectIsPressedAsState()
     val scale by animateFloatAsState(
-        targetValue = if (isPressed) 1.05f else 1.0f,
+        targetValue = if (isPressed) 0.95f else 1.0f,
         animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessMedium
+            dampingRatio = 0.5f, // More bouncy/expressive
+            stiffness = 300f // Balanced stiffness for spring feel
         ),
         label = "press_scale"
     )
     val translationY by animateFloatAsState(
-        targetValue = if (isPressed) -6f else 0f,
+        targetValue = if (isPressed) 2f else 0f,
         animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessMedium
+            dampingRatio = 0.5f,
+            stiffness = 300f
         ),
         label = "press_translation"
     )

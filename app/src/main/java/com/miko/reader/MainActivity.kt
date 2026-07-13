@@ -150,7 +150,7 @@ class MainActivity : ComponentActivity() {
                 mutableStateOf(AppTheme.valueOf(themeName ?: AppTheme.Dynamic.name))
             }
             var carouselCardSize by remember {
-                mutableIntStateOf(prefs.getInt("carousel_card_size", 140))
+                mutableIntStateOf(prefs.getInt("carousel_card_size", 100))
             }
             var hapticsEnabled by remember {
                 mutableStateOf(prefs.getBoolean("haptics_enabled", false))
@@ -198,8 +198,8 @@ class MainActivity : ComponentActivity() {
                                 val json = org.json.JSONObject(response)
                                 val tagName = json.getString("tag_name")
                                 val htmlUrl = json.getString("html_url")
-                                val currentVersion = "v${BuildConfig.VERSION_NAME}"
-                                if (tagName != currentVersion) {
+                                val currentVersion = BuildConfig.VERSION_NAME
+                                if (com.miko.reader.util.UpdateChecker.isNewerVersion(currentVersion.replace("v", ""), tagName.replace("v", ""))) {
                                     updateVersion = tagName
                                     updateUrl = htmlUrl
                                 }
@@ -526,12 +526,39 @@ class MainActivity : ComponentActivity() {
                                     modifier = Modifier
                                         .padding(
                                             top = padding.calculateTopPadding(),
-                                            bottom = if (currentRoute == "explore" || currentRoute == "anilist_full") 0.dp else padding.calculateBottomPadding()
+                                        bottom = if (currentRoute == "explore" || currentRoute == "anilist_full") 0.dp else padding.calculateBottomPadding()
                                         )
                                         .fillMaxSize()
                                 ) {
-                                    NavHost(navController = navController, startDestination = "home") {
-                                        composable("home") {
+                                    NavHost(
+                                        navController = navController,
+                                        startDestination = "home",
+                                        enterTransition = {
+                                            androidx.compose.animation.scaleIn(
+                                                initialScale = 0.9f,
+                                                animationSpec = androidx.compose.animation.core.tween(150)
+                                            ) + androidx.compose.animation.fadeIn(animationSpec = androidx.compose.animation.core.tween(150))
+                                        },
+                                        exitTransition = {
+                                            androidx.compose.animation.scaleOut(
+                                                targetScale = 0.9f,
+                                                animationSpec = androidx.compose.animation.core.tween(150)
+                                            ) + androidx.compose.animation.fadeOut(animationSpec = androidx.compose.animation.core.tween(150))
+                                        },
+                                        popEnterTransition = {
+                                            androidx.compose.animation.scaleIn(
+                                                initialScale = 0.9f,
+                                                animationSpec = androidx.compose.animation.core.tween(150)
+                                            ) + androidx.compose.animation.fadeIn(animationSpec = androidx.compose.animation.core.tween(150))
+                                        },
+                                        popExitTransition = {
+                                            androidx.compose.animation.scaleOut(
+                                                targetScale = 0.9f,
+                                                animationSpec = androidx.compose.animation.core.tween(150)
+                                            ) + androidx.compose.animation.fadeOut(animationSpec = androidx.compose.animation.core.tween(150))
+                                        }
+                                    ) {
+                                         composable("home") {
                                              HomeScreen(
                                                  historyFlow = db.historyDao().getAllHistory(),
                                                  favouritesFlow = db.favouriteDao().getAllFavourites(),
@@ -547,31 +574,33 @@ class MainActivity : ComponentActivity() {
                                              )
                                          }
                                         composable("fav") {
-                                            FavouritesScreen(
-                                                favouritesFlow = db.favouriteDao().getAllFavourites(),
-                                                onAniListClick = {
-                                                    triggerHaptic(hapticsEnabled)
-                                                    navController.navigate("anilist_full")
-                                                },
-                                                onMangaClick = { mangaId ->
-                                                    triggerHaptic(hapticsEnabled)
-                                                    navigateWithAds("detail/$mangaId")
-                                                }
-                                            )
-                                        }
-                                        composable("offline") {
-                                            OfflineScreen(
-                                                downloadsFlow = db.downloadDao().getAllDownloads(),
-                                                onMangaClick = { mangaId ->
-                                                    triggerHaptic(hapticsEnabled)
-                                                    navigateWithAds("detail/$mangaId")
-                                                },
-                                                onLogsClick = {
-                                                    triggerHaptic(hapticsEnabled)
-                                                    navController.navigate("logs")
-                                                }
-                                            )
-                                        }
+                                             FavouritesScreen(
+                                                 favouritesFlow = db.favouriteDao().getAllFavourites(),
+                                                 carouselCardSize = carouselCardSize,
+                                                 onAniListClick = {
+                                                     triggerHaptic(hapticsEnabled)
+                                                     navController.navigate("anilist_full")
+                                                 },
+                                                 onMangaClick = { mangaId ->
+                                                     triggerHaptic(hapticsEnabled)
+                                                     navigateWithAds("detail/$mangaId")
+                                                 }
+                                             )
+                                         }
+                                         composable("offline") {
+                                             OfflineScreen(
+                                                 downloadsFlow = db.downloadDao().getAllDownloads(),
+                                                 carouselCardSize = carouselCardSize,
+                                                 onMangaClick = { mangaId ->
+                                                     triggerHaptic(hapticsEnabled)
+                                                     navigateWithAds("detail/$mangaId")
+                                                 },
+                                                 onLogsClick = {
+                                                     triggerHaptic(hapticsEnabled)
+                                                     navController.navigate("logs")
+                                                 }
+                                             )
+                                         }
                                         composable("logs") {
                                             LogsScreen(
                                                 logsFlow = com.miko.reader.util.DownloadManager.logs,

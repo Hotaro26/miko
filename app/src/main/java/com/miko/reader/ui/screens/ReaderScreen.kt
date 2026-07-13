@@ -177,7 +177,7 @@ fun ReaderScreen(
                             ) {
                                 Button(
                                     onClick = { onNextChapter(nextChapterId) },
-                                    shape = RoundedCornerShape(16.dp),
+                                    shape = MaterialTheme.shapes.medium,
                                     colors = ButtonDefaults.buttonColors(
                                         containerColor = MaterialTheme.colorScheme.primary,
                                         contentColor = MaterialTheme.colorScheme.onPrimary
@@ -262,7 +262,7 @@ fun ReaderScreen(
             ) {
                 Surface(
                     modifier = Modifier.fillMaxWidth().padding(16.dp),
-                    shape = RoundedCornerShape(24.dp),
+                    shape = MaterialTheme.shapes.large,
                     color = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)
                 ) {
                     Column(

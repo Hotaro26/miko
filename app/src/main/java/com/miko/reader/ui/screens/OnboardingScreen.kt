@@ -55,7 +55,7 @@ fun OnboardingScreen(
             contentDescription = "App Icon",
             modifier = Modifier
                 .size(160.dp)
-                .clip(RoundedCornerShape(32.dp))
+                .clip(MaterialTheme.shapes.extraLarge)
                 .background(MaterialTheme.colorScheme.primaryContainer)
         )
         
@@ -84,7 +84,7 @@ fun OnboardingScreen(
         if (needsNotificationPermission) {
             Card(
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
-                shape = RoundedCornerShape(24.dp),
+                shape = MaterialTheme.shapes.large,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(
@@ -108,7 +108,7 @@ fun OnboardingScreen(
                     Button(
                         onClick = { permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS) },
                         modifier = Modifier.fillMaxWidth().height(56.dp),
-                        shape = RoundedCornerShape(16.dp)
+                        shape = MaterialTheme.shapes.medium
                     ) {
                         Text("Allow Notifications", fontSize = 16.sp, fontWeight = FontWeight.Bold)
                     }
@@ -124,7 +124,7 @@ fun OnboardingScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
-                shape = RoundedCornerShape(16.dp)
+                shape = MaterialTheme.shapes.medium
             ) {
                 Text("Get Started", fontSize = 18.sp, fontWeight = FontWeight.Bold)
             }

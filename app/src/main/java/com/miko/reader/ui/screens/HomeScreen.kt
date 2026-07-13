@@ -127,7 +127,7 @@ fun HomeFavouriteCard(manga: FavouriteManga, cardSize: Int, onClick: (FavouriteM
             modifier = Modifier
                 .fillMaxWidth()
                 .aspectRatio(0.7f)
-                .clip(RoundedCornerShape(20.dp)),
+                .clip(RoundedCornerShape(12.dp)),
             contentScale = ContentScale.Crop
         )
         Spacer(Modifier.height(8.dp))
@@ -155,7 +155,7 @@ fun HistoryCard(entry: HistoryEntry, onClick: (HistoryEntry) -> Unit) {
             modifier = Modifier
                 .fillMaxWidth()
                 .aspectRatio(0.7f)
-                .clip(RoundedCornerShape(20.dp)),
+                .clip(RoundedCornerShape(12.dp)),
             contentScale = ContentScale.Crop
         )
         Spacer(Modifier.height(8.dp))
@@ -177,11 +177,11 @@ fun HistoryCard(entry: HistoryEntry, onClick: (HistoryEntry) -> Unit) {
 @Composable
 fun HistoryItem(entry: HistoryEntry, onClick: (HistoryEntry) -> Unit) {
     Surface(
-        onClick = { onClick(entry) },
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 4.dp),
-        shape = RoundedCornerShape(20.dp),
+            .padding(horizontal = 16.dp, vertical = 4.dp)
+            .pressToRaiseClickable { onClick(entry) },
+        shape = MaterialTheme.shapes.medium,
         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
     ) {
         Row(
@@ -195,7 +195,7 @@ fun HistoryItem(entry: HistoryEntry, onClick: (HistoryEntry) -> Unit) {
                 contentDescription = null,
                 modifier = Modifier
                     .size(60.dp, 90.dp)
-                    .clip(RoundedCornerShape(12.dp)),
+                    .clip(MaterialTheme.shapes.small),
                 contentScale = ContentScale.Crop
             )
             Spacer(Modifier.width(16.dp))

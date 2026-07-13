@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -29,6 +30,7 @@ import com.miko.reader.ui.theme.pressToRaiseClickable
 @Composable
 fun FavouritesScreen(
     favouritesFlow: Flow<List<FavouriteManga>>, 
+    carouselCardSize: Int,
     onAniListClick: () -> Unit,
     onMangaClick: (String) -> Unit
 ) {
@@ -56,7 +58,7 @@ fun FavouritesScreen(
             
             Surface(
                 onClick = onAniListClick,
-                shape = RoundedCornerShape(50),
+                shape = CircleShape,
                 color = MaterialTheme.colorScheme.primaryContainer
             ) {
                 Row(
@@ -89,7 +91,7 @@ fun FavouritesScreen(
             }
         } else {
             LazyVerticalGrid(
-                columns = GridCells.Adaptive(minSize = 120.dp),
+                columns = GridCells.Adaptive(minSize = carouselCardSize.dp),
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(20.dp),
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
@@ -116,7 +118,7 @@ fun FavouriteCard(manga: FavouriteManga, onClick: (FavouriteManga) -> Unit) {
             modifier = Modifier
                 .fillMaxWidth()
                 .aspectRatio(0.7f)
-                .clip(RoundedCornerShape(24.dp)),
+                .clip(RoundedCornerShape(12.dp)),
             contentScale = ContentScale.Crop
         )
         Spacer(Modifier.height(8.dp))

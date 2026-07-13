@@ -1,18 +1,20 @@
 package com.miko.reader.ui.screens
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
@@ -23,11 +25,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -53,6 +53,13 @@ fun ExploreScreen(
     var isLoadingSuggestions by remember { mutableStateOf(true) }
     val scope = rememberCoroutineScope()
 
+    val gridState = rememberLazyGridState()
+    val isScrolled by remember { 
+        derivedStateOf { 
+            gridState.firstVisibleItemIndex > 0 || gridState.firstVisibleItemScrollOffset > 20 
+        } 
+    }
+
     LaunchedEffect(Unit) {
         try {
             val res = api.getMangaList(
@@ -70,17 +77,41 @@ fun ExploreScreen(
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        Text(
-            "Explore",
-            style = MaterialTheme.typography.displaySmall,
-            modifier = Modifier
-                .padding(horizontal = 16.dp)
-                .padding(top = 48.dp, bottom = 16.dp),
-            fontWeight = FontWeight.Black,
-            letterSpacing = (-1).sp
+        AnimatedVisibility(
+            visible = !isScrolled,
+            enter = expandVertically(expandFrom = Alignment.Top) + fadeIn(),
+            exit = shrinkVertically(shrinkTowards = Alignment.Top) + fadeOut()
+        ) {
+            Text(
+                "Explore",
+                style = MaterialTheme.typography.displaySmall,
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .padding(top = 48.dp, bottom = 16.dp),
+                fontWeight = FontWeight.Black,
+                letterSpacing = (-1).sp
+            )
+        }
+
+        val searchBarTopPadding by animateDpAsState(
+            targetValue = if (isScrolled) 16.dp else 0.dp, 
+            animationSpec = tween(300),
+            label = "searchBarTopPadding"
+        )
+        val searchBarHorizontalPadding by animateDpAsState(
+            targetValue = if (isScrolled) 8.dp else 16.dp, 
+            animationSpec = tween(300),
+            label = "searchBarHorizontalPadding"
+        )
+        val searchBarCornerRadius by animateDpAsState(
+            targetValue = if (isScrolled) 16.dp else 28.dp, 
+            animationSpec = tween(300),
+            label = "searchBarCornerRadius"
         )
 
-        SearchBar(
+        Spacer(modifier = Modifier.height(searchBarTopPadding))
+        
+        androidx.compose.material3.SearchBar(
             query = searchQuery,
             onQueryChange = {
                 searchQuery = it
@@ -102,53 +133,80 @@ fun ExploreScreen(
                     isLoadingSearch = false
                 }
             },
-            onClear = {
-                searchQuery = ""
-                searchMangaList = emptyList()
-                isLoadingSearch = false
-            },
-            placeholder = "Search MangaDex..."
-        )
-
-        if (searchQuery.isEmpty()) {
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                ShortcutButton(
-                    icon = Icons.Outlined.Casino, 
-                    label = "Random", 
-                    modifier = Modifier.weight(1f)
-                ) {
-                    scope.launch {
-                        try {
-                            val res = api.getRandomManga(includes = listOf("cover_art"))
-                            onMangaClick(res.data)
-                        } catch (e: Exception) { e.printStackTrace() }
+            onSearch = { },
+            active = false,
+            onActiveChange = { },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = searchBarHorizontalPadding)
+                .padding(bottom = 8.dp),
+            placeholder = { Text("Search MangaDex...") },
+            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+            trailingIcon = {
+                if (searchQuery.isNotEmpty()) {
+                    IconButton(onClick = {
+                        searchQuery = ""
+                        searchMangaList = emptyList()
+                        isLoadingSearch = false
+                    }) {
+                        Icon(Icons.Default.Clear, contentDescription = "Clear")
                     }
                 }
-                ShortcutButton(
-                    icon = Icons.Outlined.Bookmark, 
-                    label = "Library", 
-                    modifier = Modifier.weight(1f)
-                ) {
-                    onLibraryClick()
-                }
-            }
-
-            Text(
-                "Discover something new",
-                style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.padding(16.dp).padding(top = 16.dp),
-                fontWeight = FontWeight.Bold
+            },
+            shape = RoundedCornerShape(searchBarCornerRadius),
+            colors = SearchBarDefaults.colors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant
             )
+        ) {}
 
+        AnimatedVisibility(
+            visible = !isScrolled && searchQuery.isEmpty(),
+            enter = expandVertically() + fadeIn(),
+            exit = shrinkVertically() + fadeOut()
+        ) {
+            Column {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    ShortcutButton(
+                        icon = Icons.Outlined.Casino, 
+                        label = "Random", 
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        scope.launch {
+                            try {
+                                val res = api.getRandomManga(includes = listOf("cover_art"))
+                                onMangaClick(res.data)
+                            } catch (e: Exception) { e.printStackTrace() }
+                        }
+                    }
+                    ShortcutButton(
+                        icon = Icons.Outlined.Bookmark, 
+                        label = "Library", 
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        onLibraryClick()
+                    }
+                }
+
+                Text(
+                    "Discover something new",
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.padding(16.dp).padding(top = 8.dp),
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+
+        if (searchQuery.isEmpty()) {
             if (isLoadingSuggestions) {
                 Box(Modifier.fillMaxWidth().height(400.dp)) {
                     MikoLoadingScreen("Finding Suggestions...")
                 }
             } else {
                 LazyVerticalGrid(
+                    state = gridState,
                     columns = GridCells.Adaptive(minSize = carouselCardSize.dp),
                     contentPadding = PaddingValues(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 96.dp),
                     verticalArrangement = Arrangement.spacedBy(20.dp),
@@ -165,6 +223,7 @@ fun ExploreScreen(
                 MikoLoadingScreen("Searching MangaDex...")
             } else {
                 LazyVerticalGrid(
+                    state = gridState,
                     columns = GridCells.Adaptive(minSize = carouselCardSize.dp),
                     contentPadding = PaddingValues(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 96.dp),
                     verticalArrangement = Arrangement.spacedBy(20.dp),
@@ -174,62 +233,6 @@ fun ExploreScreen(
                     items(searchMangaList, key = { "search_${it.id}" }) { manga ->
                         ExploreMangaCard(manga, onMangaClick)
                     }
-                }
-            }        }
-    }
-}
-
-@Composable
-fun SearchBar(query: String, onQueryChange: (String) -> Unit, onClear: () -> Unit, placeholder: String) {
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp)
-            .height(64.dp),
-        shape = CircleShape,
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(horizontal = 20.dp)
-        ) {
-            Icon(
-                Icons.Default.Search, 
-                contentDescription = null, 
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(24.dp)
-            )
-            Spacer(Modifier.width(16.dp))
-            Box(Modifier.weight(1f)) {
-                if (query.isEmpty()) {
-                    Text(
-                        placeholder, 
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                }
-                BasicTextField(
-                    value = query,
-                    onValueChange = onQueryChange,
-                    modifier = Modifier.fillMaxWidth(),
-                    textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
-                    cursorBrush = androidx.compose.ui.graphics.SolidColor(MaterialTheme.colorScheme.onSurface),
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                    singleLine = true
-                )
-            }
-            
-            AnimatedVisibility(
-                visible = query.isNotEmpty(),
-                enter = fadeIn(),
-                exit = fadeOut()
-            ) {
-                IconButton(onClick = onClear) {
-                    Icon(
-                        Icons.Default.Clear, 
-                        contentDescription = "Clear",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
                 }
             }
         }
@@ -243,11 +246,15 @@ fun ShortcutButton(
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
-    Surface(
-        modifier = modifier.height(64.dp),
-        shape = RoundedCornerShape(24.dp),
-        color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f),
-        onClick = onClick
+    FilledTonalButton(
+        onClick = onClick,
+        modifier = modifier.height(72.dp),
+        shape = MaterialTheme.shapes.large,
+        colors = ButtonDefaults.filledTonalButtonColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+            contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+        ),
+        contentPadding = PaddingValues(0.dp)
     ) {
         Column(
             verticalArrangement = Arrangement.Center,
@@ -257,14 +264,13 @@ fun ShortcutButton(
             Icon(
                 icon, 
                 contentDescription = null, 
-                modifier = Modifier.size(24.dp), 
-                tint = MaterialTheme.colorScheme.onSecondaryContainer
+                modifier = Modifier.size(28.dp)
             )
+            Spacer(Modifier.height(4.dp))
             Text(
                 label, 
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.onSecondaryContainer
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Bold
             )
         }
     }
@@ -283,17 +289,42 @@ fun ExploreMangaCard(manga: MangaData, onClick: (MangaData) -> Unit) {
             modifier = Modifier
                 .fillMaxWidth()
                 .aspectRatio(0.7f)
-                .clip(RoundedCornerShape(24.dp)),
+                .clip(RoundedCornerShape(12.dp)),
             contentScale = ContentScale.Crop
         )
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(12.dp))
         Text(
             text = manga.getTitle(),
-            style = MaterialTheme.typography.labelLarge,
+            style = MaterialTheme.typography.titleSmall,
             fontWeight = FontWeight.Bold,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
-            lineHeight = 16.sp
+            lineHeight = 18.sp
         )
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SearchBar(query: String, onQueryChange: (String) -> Unit, onClear: () -> Unit, placeholder: String) {
+    androidx.compose.material3.SearchBar(
+        query = query,
+        onQueryChange = onQueryChange,
+        onSearch = { },
+        active = false,
+        onActiveChange = { },
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        placeholder = { Text(placeholder) },
+        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+        trailingIcon = {
+            if (query.isNotEmpty()) {
+                IconButton(onClick = onClear) {
+                    Icon(Icons.Default.Clear, contentDescription = "Clear")
+                }
+            }
+        },
+        shape = androidx.compose.foundation.shape.CircleShape
+    ) {}
 }
